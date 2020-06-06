@@ -5,6 +5,7 @@ import cv2
 import matplotlib.pyplot as plt
 import time
 import csv
+
 pipeline = rs.pipeline()
 config = rs.config()
 config.enable_stream(rs.stream.depth, 424, 240, rs.format.z16, 30)
@@ -16,12 +17,14 @@ print("Depth Scale is: " , depth_scale)
 clipping_distance_in_meters = 1 #1 meter
 clipping_distance = clipping_distance_in_meters / depth_scale
 print(clipping_distance)
+
 depth_images=[]
 color_images=[]
 bg_removed=[]
-print("going to start")
+print("recognizing hand gesture")
 time.sleep(1)
 tend=time.time()+1*2
+#collecting depth data
 try:
 	while time.time() <tend:
 		frames=pipeline.wait_for_frames()
@@ -31,6 +34,7 @@ try:
 		if len(depth_images)==25:
 			break
 finally:
+	#segmenting depth data
 	if len(depth_images)==25:
 		for i in range(0,25):
 			bg_removed.append(np.where((depth_images[i] < clipping_distance) & (depth_images[i] > 0),depth_images[i], 0))
@@ -47,6 +51,7 @@ finally:
 			c_new=bg_removed[i]
 			c=np.concatenate((c,c_new),axis=0)
 		c=c.T
+		#writing depth data to a csv file
 		if len(bg_removed)==25:
 			print("writing to file")
 			with open('sundayseg.csv','a',newline='')as file:
